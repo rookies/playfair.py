@@ -49,7 +49,7 @@ class Playfair (object):
 		for c in list(text_p):
 			if lastc == "":
 				lastc = c
-			elif lastc == c:
+			elif lastc == c and c != "X":
 				text_s.append((lastc, "X"))
 				lastc = c
 			else:
@@ -63,7 +63,7 @@ class Playfair (object):
 		text = ""
 		for pair in text_s:
 			text += "%s%s " % (pair[0], pair[1], )
-		return text
+		return text.strip()
 	def create_square (self, key):
 		square = []
 		alph_remain = self.alphabet[:]
@@ -117,43 +117,54 @@ class Playfair (object):
 		else:
 			col -= 1
 		return square[(row*5)+col]
-	def check_key (self, key):
-		print("==> Checking key... ", end="")
+	def check_key (self, key, debug):
+		if debug:
+			print("==> Checking key... ", end="")
 		if len(key) < 1 or len(key) > 25:
-			print("Fail.")
-			print("====> Invalid key size: %d" % len(key))
+			if debug:
+				print("Fail.")
+				print("====> Invalid key size: %d" % len(key))
 			return False
 		alph_remain = self.alphabet[:]
 		for c in list(key):
 			if not c in self.alphabet:
-				print("Fail.")
-				print("====> Invalid char in the key: %s" % c)
+				if debug:
+					print("Fail.")
+					print("====> Invalid char in the key: %s" % c)
 				return False
 			elif not c in alph_remain:
-				print("Fail.")
-				print("====> Double char in the key: %s" % c)
+				if debug:
+					print("Fail.")
+					print("====> Double char in the key: %s" % c)
 				return False
 			else:
 				alph_remain.remove(c)
-		print("Done.")
+		if debug:
+			print("Done.")
 		return True
-	def encode (self, text, key):
-		print("== PLAYFAIR encode start ==")
+	def encode (self, text, key, debug=False):
+		if debug:
+			print("== PLAYFAIR encode start ==")
 		## Prepare the text:
-		print("==> Preparing...")
-		print("Text: %s" % text)
+		if debug:
+			print("==> Preparing...")
+			print("Text: %s" % text)
 		text_s = self.prepare_text(text)
-		print("Prepared Text: %s" % self.concat_seperated_text(text_s))
-		print("Key: %s" % key)
+		if debug:
+			print("Prepared Text: %s" % self.concat_seperated_text(text_s))
+			print("Key: %s" % key)
 		## Check the key:
-		if not self.check_key(key):
+		if not self.check_key(key, debug):
 			return False
 		## Create the square:
-		print("==> Creating playfair square...")
+		if debug:
+			print("==> Creating playfair square...")
 		square = self.create_square(key)
-		self.dump_square(square)
+		if debug:
+			self.dump_square(square)
 		## Encode:
-		print("==> Encoding...")
+		if debug:
+			print("==> Encoding...")
 		text_e = ""
 		for pair in text_s:
 			i0 = square.index(pair[0])
@@ -175,25 +186,34 @@ class Playfair (object):
 		for i in range(0, len(text_e), 2):
 			text += "%s " % text_e[i:(i+2)]
 		text = text.strip()
-		print("Encoded Text: %s" % text)
+		if debug:
+			print("Encoded Text: %s" % text)
 		## Success:
-		print("== PLAYFAIR encode done ==")
+		if debug:
+			print("== PLAYFAIR encode done ==")
 		return text
-	def decode (self, text, key):
-		print("== PLAYFAIR decode start ==")
+	def decode (self, text, key, debug=False):
+		if debug:
+			print("== PLAYFAIR decode start ==")
 		## Print the arguments:
-		print("====> Preparing...")
-		print("Encoded text: %s" % text)
-		print("Key: %s" % key)
+		if debug:
+			print("====> Preparing...")
+		if debug:
+			print("Encoded text: %s" % text)
+		if debug:
+			print("Key: %s" % key)
 		## Check the key:
-		if not self.check_key(key):
+		if not self.check_key(key, debug):
 			return False
 		## Create the square:
-		print("==> Creating playfair square...")
+		if debug:
+			print("==> Creating playfair square...")
 		square = self.create_square(key)
-		self.dump_square(square)
+		if debug:
+			self.dump_square(square)
 		## Decode:
-		print("==> Decoding...")
+		if debug:
+			print("==> Decoding...")
 		text_e = text.split(" ")
 		text_d = ""
 		for pair in text_e:
@@ -216,12 +236,20 @@ class Playfair (object):
 		for i in range(0, len(text_d), 2):
 			text += "%s " % text_d[i:(i+2)]
 		text = text.strip()
-		print("Decoded Text: %s" % text)
+		if debug:
+			print("Decoded Text: %s" % text)
 		## Success:
-		print("== PLAYFAIR decode done ==")
+		if debug:
+			print("== PLAYFAIR decode done ==")
 		return text
 
 if __name__ == "__main__":
 	p = Playfair()
-	enc = p.encode("Laboulaye lady will lead to Cibola temples of gold", "DEATH")
-	p.decode(enc, "DEATH")
+	txt = "Laboulaye lady will lead to Cibola temples of gold."
+	key = "DEATH"
+	print("Text: %s" % txt)
+	print("Key: %s" % key)
+	enc = p.encode(txt, key, False) # True to enable debug mode
+	print("Encrypted: %s" % enc)
+	dec = p.decode(enc, key, False) # True to enable debug mode
+	print("Decrypted: %s" % dec)
